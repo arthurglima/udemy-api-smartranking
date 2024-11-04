@@ -2,66 +2,61 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CriarJogadorDto } from './dtos/criar-jogador.dto';
 import { Jogador } from './interfaces/jogador.interface';
 import { v4 as uuidv4 } from 'uuid';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class JogadoresService {
 
   private jogadores: Jogador[] = [];
 
+  constructor(@InjectModel('Jogador') private readonly jogadorModel: Model<Jogador>) {}
+
   private readonly logger = new Logger(JogadoresService.name);
 
   async createUpdateJogador(createJogadorDto: CriarJogadorDto): Promise<void> {
     const { email } = createJogadorDto;
 
-    const jogadorEncontrado = this.jogadores.find(jogador => jogador.email === email);
+    const jogadorFound = await this.jogadorModel.findOne({email}).exec();
 
-    if (jogadorEncontrado) {
-      this.update(jogadorEncontrado, createJogadorDto);
+    if (jogadorFound) {
+      await this.update(jogadorFound, createJogadorDto);
     } else {
-      this.create(createJogadorDto);
+      await this.create(createJogadorDto);
     }
 
   }
 
   async getAllJogadores(): Promise<Jogador[]> {
 
-    return this.jogadores;
+    return await this.jogadorModel.find().exec();
   }
 
   async getJogadorByEmail(email: string): Promise<Jogador> {
-    const jogadorFound = this.jogadores.find(jogador => jogador.email === email);
+    const jogadorFound = await this.jogadorModel.findOne({email}).exec();
     if (!jogadorFound) {
       throw new NotFoundException(`Jogador com e-mail ${email} não encontrado`);
     }
     return jogadorFound;
   }
 
-  async deleteJogador(email: string): Promise<void> {
-    const jogadorFound = this.jogadores.find(jogador => jogador.email === email);
-    if (!jogadorFound) {
-      throw new NotFoundException(`Jogador com e-mail ${email} não encontrado`);
-    }
-    this.jogadores = this.jogadores.filter(jogador => jogador.email !== email);
+  async deleteJogador(email: string): Promise<boolean> {
+    // O método "remove" foi descontinuado, então usamos o "deleteOne"
+    const deleteResult = await this.jogadorModel.deleteOne({email}).exec();
+    // Ele estava usando o retorno "any", mas consegui verificar o retorno correto
+    return deleteResult.acknowledged && deleteResult.deletedCount > 0;
   }
 
-  private create(createJogadorDto: CriarJogadorDto): void {
-    const { nome, telefoneCelular, email } = createJogadorDto;
-    const jogador: Jogador = {
-      _id: uuidv4(),
-      telefoneCelular,
-      email,
-      nome,
-      ranking: 'A',
-      posicaoRanking: 1,
-      urlFotoJogador: 'www.google.com.br/foto123.jpg'
-    };
-    this.logger.log(`criaJogadorDto: ${JSON.stringify(jogador)}`);
-    this.jogadores.push(jogador);
+  private async create(createJogadorDto: CriarJogadorDto): Promise<Jogador> {
+
+    const jogador = new this.jogadorModel(createJogadorDto);
+    return await jogador.save();
   }
 
-  private update(jogadorFound: Jogador, criarJogadorDto: CriarJogadorDto): void {
-    const { nome } = criarJogadorDto;
-    jogadorFound.nome = nome;
+  private async update(jogadorFound: Jogador, criarJogadorDto: CriarJogadorDto): Promise<Jogador> {
+
+    // No curso ele usa o método findOneAndUpdate, mas como já temos o objeto, não faz sentido buscar novamente
+    return await jogadorFound.updateOne(criarJogadorDto).exec();
   }
 
 }
