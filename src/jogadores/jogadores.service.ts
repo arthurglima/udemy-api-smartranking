@@ -9,8 +9,6 @@ import { AtualizarJogadorDto } from './dtos/atualizar-jogador.dto';
 @Injectable()
 export class JogadoresService {
 
-  private jogadores: Jogador[] = [];
-
   constructor(@InjectModel('Jogador') private readonly jogadorModel: Model<Jogador>) {}
 
   private readonly logger = new Logger(JogadoresService.name);
@@ -47,7 +45,7 @@ export class JogadoresService {
   async getJogadorById(_id: string): Promise<Jogador> {
     const jogadorFound = await this.jogadorModel.findOne({_id: _id}).exec();
     if (!jogadorFound) {
-      throw new NotFoundException(`Jogador com e-mail ${_id} não encontrado`);
+      throw new NotFoundException(`Jogador com id ${_id} não encontrado`);
     }
     return jogadorFound;
   }
@@ -57,7 +55,7 @@ export class JogadoresService {
     const jogadorFound = await this.jogadorModel.findOne({_id: _id}).exec();
 
     if (!jogadorFound) {
-      throw new NotFoundException(`Jogador com e-mail ${_id} não encontrado`);
+      throw new NotFoundException(`Jogador com id ${_id} não encontrado`);
     }
 
     // O método "remove" foi descontinuado, então usamos o "deleteOne"
