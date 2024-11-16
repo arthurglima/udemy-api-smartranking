@@ -27,7 +27,7 @@ export class JogadoresService {
   }
 
   async updateJogador(_id: string, updateJogadorDto: AtualizarJogadorDto): Promise<Jogador> {
-    const jogadorFound = await this.jogadorModel.findOne({_id}).exec();
+    const jogadorFound = await this.jogadorModel.findOne({desafioId: _id}).exec();
 
     if (!jogadorFound) {
       throw new NotFoundException(`Jogador com id ${_id} não encontrado`);
@@ -43,7 +43,7 @@ export class JogadoresService {
   }
 
   async getJogadorById(_id: string): Promise<Jogador> {
-    const jogadorFound = await this.jogadorModel.findOne({_id: _id}).exec();
+    const jogadorFound = await this.jogadorModel.findOne({desafioId: _id}).exec();
     if (!jogadorFound) {
       throw new NotFoundException(`Jogador com id ${_id} não encontrado`);
     }
@@ -52,14 +52,14 @@ export class JogadoresService {
 
   async deleteJogador(_id: string): Promise<boolean> {
 
-    const jogadorFound = await this.jogadorModel.findOne({_id: _id}).exec();
+    const jogadorFound = await this.jogadorModel.findOne({desafioId: _id}).exec();
 
     if (!jogadorFound) {
       throw new NotFoundException(`Jogador com id ${_id} não encontrado`);
     }
 
     // O método "remove" foi descontinuado, então usamos o "deleteOne"
-    const deleteResult = await this.jogadorModel.deleteOne({_id: _id}).exec();
+    const deleteResult = await this.jogadorModel.deleteOne({desafioId: _id}).exec();
     // Ele estava usando o retorno "any", mas consegui verificar o retorno correto
     return deleteResult.acknowledged && deleteResult.deletedCount > 0;
   }

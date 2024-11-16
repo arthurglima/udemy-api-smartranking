@@ -60,7 +60,7 @@ export class CategoriasService {
         throw new BadRequestException(`Jogador ${idJogador} não encontrado`);
       }
 
-      const jogadorAlreadyInCategory = categoriaFound.jogadores.some(jogador => jogador['_id'] == idJogador);
+      const jogadorAlreadyInCategory = categoriaFound.jogadores.some(jogador => jogador['desafioId'] == idJogador);
       if (jogadorAlreadyInCategory) {
         throw new BadRequestException(`Jogador ${idJogador} já cadastrado na categoria ${categoria}`);
       }
@@ -68,6 +68,15 @@ export class CategoriasService {
       categoriaFound.jogadores.push(idJogador);
       await categoriaFound.save();
 
+    }
+
+    async getCategoriaJogador(idJogador: string): Promise<Categoria> {
+      const categoriaFound = await this.categoriaModel.findOne({jogadores: idJogador}).exec();
+      if (!categoriaFound) {
+        throw new BadRequestException(`Jogador ${idJogador} não encontrado em nenhuma categoria`);
+      }
+
+      return categoriaFound;
     }
 
 }
